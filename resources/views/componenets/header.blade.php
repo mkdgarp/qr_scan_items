@@ -32,7 +32,6 @@
             timer: 5000,
             timerProgressBar: true
         });
-        
     </script>
 </head>
 
@@ -40,6 +39,11 @@
     * {
         font-family: "Sarabun", sans-serif;
         font-style: normal;
+    }
+
+    .container,
+    .container-fluid {
+        margin-bottom: 95px !important;
     }
 
     body {
