@@ -7,13 +7,10 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Session;
 
 class LoginController extends Controller
 {
-    // public function showLoginForm()
-    // {
-    //     return view('login');
-    // }
 
     public function login(Request $request)
     {
@@ -24,12 +21,20 @@ class LoginController extends Controller
             ->where('username', $username)
             ->first();
 
-        if ($user && Hash::check($password, $user->password) && $user->role == 1) {
-            // Authentication was successful...
-            // Auth::loginUsingId($user->id);
-            return redirect('/form'); // Redirect to home page
-        }
+        if ($user && Hash::check($password, $user->password && $user->role == 1)) {
+            // เมื่อล็อกอินสำเร็จ
+            // สร้าง session
+            Session::put('user_id', $user->id);
 
-        return redirect()->back()->withErrors(['loginError' => 'Invalid username, password, or role.']); // Redirect back with error message
+            // Redirect ไปที่หน้า /form
+            // return 111;
+            return redirect('/form');
+        } else {
+            // กระบวนการเมื่อล็อกอินไม่สำเร็จ
+            // แสดงข้อความผิดพลาดและ redirect ผู้ใช้กลับไปที่หน้า login
+            // return 000;
+            return response()->json(['msg' => 'error'], 401);
+        }
+        // return 555;
     }
 }

@@ -22,8 +22,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 Route::get('/checkDB', [assetController::class, 'checkDB'])->name('asset.checkDB');
+Route::get('/listRowQR', [assetController::class, 'listRowQR'])->name('asset.listRowQR');
 Route::get('/asset/create', [assetController::class, 'create'])->name('asset.create');
 Route::post('/asset/store', [assetController::class, 'store'])->name('asset.store');
 
-Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [LoginController::class, 'login']);
+// Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/loginn', [LoginController::class, 'login']);

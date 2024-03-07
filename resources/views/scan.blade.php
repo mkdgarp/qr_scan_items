@@ -87,48 +87,74 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
 <script>
     // $('.btn-scan').on('click', function() {
-    //     Quagga.init({
-    //         inputStream: {
-    //             name: "Live",
-    //             type: "LiveStream",
-    //             target: document.querySelector('#scanner')
-    //         },
-    //         decoder: {
-    //             readers: ["code_128_reader"]
-    //         }
-    //     }, function(err) {
-    //         if (err) {
-    //             console.log(err);
-    //             return
-    //         }
-    //         console.log("Initialization finished. Ready to start");
-    //         Quagga.start();
-    //     });
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#scanner')
+        },
+        decoder: {
+            readers: ["code_128_reader"]
+        }
+    }, function(err) {
+        if (err) {
+            console.log(err);
+            return
+        }
+        console.log("Initialization finished. Ready to start");
+        Quagga.start();
+    });
     // })
 
-    // Quagga.onDetected(function(result) {
-    //     var code = result.codeResult.code;
-    //     console.log("Decoded code:", code);
+    Quagga.onDetected(function(result) {
+        var code = result.codeResult.code;
+        console.log("Decoded code:", code);
 
-    //     // Send code to Laravel
-    //     fetch('/scan', {
-    //             method: 'POST',
-    //             headers: {
-    //                 'Content-Type': 'application/json',
-    //                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-    //                     'content')
-    //             },
-    //             body: JSON.stringify({
-    //                 code: code
-    //             })
-    //         })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             console.log(data);
-    //             document.getElementById('result').innerText = data.message;
-    //         })
-    //         .catch(error => console.error('Error:', error));
-    // });
+        // const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+        if (code) {
+            fetch('/scan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content')
+                    },
+                    body: JSON.stringify({
+                        code: code
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    $('.displayResult').addClass('d-block')
+                    console.log(data);
+                    // document.getElementById('result').innerText = data.message;
+                })
+                .catch(error => console.error('Error:', error));
+            // $('.resultHere').html(`
+            //             <h5>ผลลัพธ์</h5>
+            //             <hr class='my-1 py-1'>
+            //             <b>รหัสสินทรัพย์:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             <b>TEST TOPIC:</b> ${code.data}<br>
+            //             `)
+            // alert('QR Code Key ==== :' + code.data)
+        } else {
+            $('.displayResult').removeClass('d-block')
+            $('.resultHere').html('')
+            // alert('รูปแบบ QR Code ไม่ถูกต้อง กรุณาตรวจสอบ!')
+            Toast.fire({
+                icon: "error",
+                title: "รูปแบบ QR Code ไม่ถูกต้อง กรุณาตรวจสอบ!"
+            });
+        }
+
+    });
 </script>
 
 <script>
@@ -169,7 +195,7 @@
                         $('.resultHere').html(`
                         <h5>ผลลัพธ์</h5>
                         <hr class='my-1 py-1'>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
+                        <b>รหัสสินทรัพย์:</b> ${code.data}<br>
                         <b>TEST TOPIC:</b> ${code.data}<br>
                         <b>TEST TOPIC:</b> ${code.data}<br>
                         <b>TEST TOPIC:</b> ${code.data}<br>

@@ -32,12 +32,16 @@ Route::post('/scan', function (Request $request) {
     return response()->json(['data' => $data]);
 });
 
+Route::get('/printQR/{assets_key}', function ($assets_key) {
+    return view('printQR', ['assets_key' => $assets_key]);
+});
+
 Route::get('/list', function () {
     return view('list');
 });
 
 // Route::middleware(['auth'])->group(function () {
-    Route::get('/form', function () {
-        return view('form');
-    });
+Route::get('/form', function () {
+    return view('form');
+});
 // });

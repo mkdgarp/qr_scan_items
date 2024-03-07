@@ -1,4 +1,11 @@
 @include('componenets.header')
+@if (!session()->has('user_id'))
+    @php
+        // Redirect ไปยังหน้าหลัก
+        header('Location: /');
+        exit();
+    @endphp
+@endif
 <div class="container-fluid mt-5">
     <div class="card">
         <div class="card-body">
@@ -35,27 +42,27 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                <h1 class="modal-title fs-5" id="exampleModalLabel">พิมพ์ QR Code</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body mx-auto">
                 <div class="row">
                     <div class="col-3">
-                        <label for="">กว้าง (pixel)</label>
-                        <input type="number" class="form-control widthCM" placeholder="กว้าง" value="256">
+                        <label for="" class="d-none ">กว้าง (pixel)</label>
+                        <input type="number" class="d-none form-control widthCM" placeholder="กว้าง" value="256">
                     </div>
                     <div class="col-3">
-                        <label for="">สูง (pixel)</label>
-                        <input type="number" class="form-control heightCM" placeholder="สูง" value="256">
+                        <label for="" class="d-none ">สูง (pixel)</label>
+                        <input type="number" class="d-none form-control heightCM" placeholder="สูง" value="256">
                     </div>
                 </div>
                 <div id="qrCode" class="m-3"></div>
 
-                <button class="btn btn-primary">พิมพ์ QR Code</button>
+                <button class="btn btn-primary mt-5 w-100 printRQReal">พิมพ์ QR Code</button>
             </div>
-            <div class="modal-footer">
+            {{-- <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
-            </div>
+            </div> --}}
         </div>
     </div>
 </div>
@@ -66,79 +73,44 @@
     $(document).ready(function() {
         let dataAssets = '';
         // ข้อมูลที่ให้มา
-        var data = [{
-            // id: "1",
-            assets_key: "123123",
-            assets_type: "C0001212",
-            zero_code: "C0001212",
-            // start_depreciation: "2024-03-08",
-            // address: "C0001212",
-            // qty: "1",
-            // unit: "1",
-            // age: "1",
-            // cost_price: "1",
-            // total_price: "1",
-            layout: "1",
-            // user_id: "test",
-            created_date: "created_date",
-            // updated_date: "updated_date"
-        }];
-
-        // สร้าง DataTable
-        $('#assetTable').DataTable({
-            data: data,
-            columns: [
-                // { data: 'id' },
-                {
-                    data: 'assets_key'
-                },
-                {
-                    data: 'assets_type'
-                },
-                {
-                    data: 'zero_code'
-                },
-                // {
-                //     data: 'start_depreciation'
-                // },
-                // {
-                //     data: 'address'
-                // },
-                // {
-                //     data: 'qty'
-                // },
-                // {
-                //     data: 'unit'
-                // },
-                // {
-                //     data: 'age'
-                // },
-                // {
-                //     data: 'cost_price'
-                // },
-                // {
-                //     data: 'total_price'
-                // },
-                {
-                    data: 'layout'
-                },
-                // { data: 'user_id' },
-                {
-                    data: 'created_date'
-                },
-                {
-                    // คอลัมน์สำหรับปุ่มพิมพ์
-                    data: null,
-                    render: function(data, type, row, meta) {
-                        return `<button class='btn btn-primary print-button' data-bs-toggle="modal" data-bs-target="#exampleModal" ><i class='bx bxs-printer'></i></button>`;
-                    }
-                }
-            ]
-        });
+        axios.get('/api/listRowQR', {})
+            .then(function(response) {
+                // หลังจากที่ได้รับข้อมูลจาก API สามารถใช้ข้อมูลเหล่านั้นในการกำหนดค่าให้กับ DataTable
+                $('#assetTable').DataTable({
+                    data: response.data,
+                    columns: [{
+                            data: 'assets_key'
+                        },
+                        {
+                            data: 'assets_type'
+                        },
+                        {
+                            data: 'zero_code'
+                        },
+                        {
+                            data: 'layout'
+                        },
+                        {
+                            data: 'created_date'
+                        },
+                        {
+                            data: null,
+                            render: function(data, type, row, meta) {
+                                return `<button class='btn btn-primary print-button' data-bs-toggle="modal" data-bs-target="#exampleModal"><i class='bx bxs-printer'></i></button>`;
+                            }
+                        }
+                    ]
+                });
+            })
+            .catch(function(error) {
+                console.error(error);
+            });
 
         $('#assetTable').on('click', '.print-button', function() {
-            $('.widthCM').val(256);
-            $('.heightCM').val(256);
+            $('#qrCode>canvas').remove()
+            $('#qrCode>img').remove()
+            // $('.widthCM').val(256);
+            // $('.heightCM').val(256);
 
             dataAssets = $('#assetTable').DataTable().row($(this).parents('tr')).data();
             var assetsKey = dataAssets.assets_key;
@@ -181,6 +153,14 @@
                 correctLevel: QRCode.CorrectLevel.H
             });
         })
+
+        $('.printRQReal').on('click', function() {
+            // ดึงค่า assets_key จาก dataAssets
+            var assetsKey = dataAssets.assets_key;
+
+            // เปิดหน้าใหม่เพื่อพิมพ์ QR Code โดยส่งค่า assets_key ไปด้วย
+            window.open('/printQR/' + assetsKey, '_blank');
+        });
 
     });
 </script>

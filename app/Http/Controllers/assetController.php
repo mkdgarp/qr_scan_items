@@ -55,10 +55,18 @@ class AssetController extends Controller
         return response()->json(['data' => $attributes]);
         // return redirect()->route('asset.create')->with('success', 'Asset created successfully!');
     }
-    public function checkDB()
+    public function listRowQR()
     {
-        // return DB::table('qr_data')->get();
-        // $password = bcrypt('123456');
-        return Hash::make('123456');
+
+        // สร้าง raw query
+        $query = "SELECT assets_key, assets_type, zero_code, layout, created_date FROM qr_data";
+
+        // ดึงข้อมูลจากฐานข้อมูลโดยใช้ raw query
+        $assets = DB::select($query);
+
+        // สามารถทำการประมวลผลหรือใช้ข้อมูลที่ได้รับได้ต่อไปตามต้องการ
+        // เช่น ส่งข้อมูลกลับไปในรูปแบบ JSON หรือแสดงผลบนหน้า View
+
+        return response()->json($assets);
     }
 }

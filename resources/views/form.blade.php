@@ -1,4 +1,12 @@
 @include('componenets.header')
+@if (!session()->has('user_id'))
+    @php
+        // Redirect ไปยังหน้าหลัก
+        header('Location: /');
+        exit();
+    @endphp
+@endif
+
 <style>
     / .highlight-input.filled {
         border: 1px solid #7eff82;
@@ -84,7 +92,7 @@
             </div> --}}
                 </div>
             </div>
-            <button type="button" class="btn btn-primary" onclick="submitForm()">Submit</button>
+            <button type="button" class="btn btn-primary w-100 mt-3" onclick="submitForm()">สร้างสินทรัพย์</button>
         </div>
     </div>
 </div>
@@ -131,7 +139,11 @@
         // ตรวจสอบค่าว่าง
         if (!assets_key || !assets_type || !zero_code || !start_depreciation || !address || !qty || !unit || !age || !
             cost_price || !total_price || !layout) {
-            alert('Please fill in all required fields.');
+            // alert('Please fill in all required fields.');
+            Toast.fire({
+                icon: "warning",
+                title: "กรุณากรอกข้อมูลให้ครบทุกช่อง"
+            });
             return; // ไม่ส่งข้อมูลถ้ามีฟิลด์ใดหนึ่งว่าง
         }
 
@@ -153,11 +165,23 @@
         axios.post('{{ route('asset.store') }}', formData)
             .then(function(response) {
                 console.log(response);
-                alert('Asset created successfully!');
+                // alert('Asset created successfully!');
+                Toast.fire({
+                    icon: "success",
+                    title: "สร้างสำเร็จ!"
+                });
+                setTimeout(() => {
+                    location.reload()
+                }, 1500);
             })
             .catch(function(error) {
                 console.log(error);
-                alert('Failed to create asset!');
+                // alert('Failed to create asset!');
+
+                Toast.fire({
+                    icon: "error",
+                    title: "ไม่สามารถสร้างสินทรัพย์นี้ได้! กรุณาตรวจสอบข้อมูล"
+                });
             });
     }
 </script>
