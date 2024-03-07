@@ -53,16 +53,16 @@
                 <div class="card-body text-center">
                     <h1>QR Code Scanner</h1>
                     <div class="d-flex justify-content-center mt-5">
-                        <button id="uploadBtn" style='display:none !important;'>สแกน QR Code</button>
+                        <button id="startScanner" style='display:none !important;'>สแกน QR Code</button>
                         <div class='upload-style mb-2'>
                             <p>
                                 <i class='bx bx-qr-scan scan-input '></i><br><b>สแกน QR Code</b>
                             </p>
-                            <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg">
+                            {{-- <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg"> --}}
                         </div>
                     </div>
 
-                    {{-- <video id="scanner" style="width:150px;max-width:600px;"></video> --}}
+                    <video id="scanner" style="width:90%;height:300px;"></video>
                     <div id="result">
 
                     </div>
@@ -86,7 +86,61 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
 <script>
-    // $('.btn-scan').on('click', function() {
+    document.getElementById('startScanner').addEventListener('click', function() {
+        // Get user media
+        navigator.mediaDevices.getUserMedia({
+                video: true
+            })
+            .then(function(stream) {
+                // Append video element to cameraContainer
+                var video = document.createElement('video');
+                video.setAttribute('autoplay', '');
+                video.setAttribute('playsinline', '');
+                video.srcObject = stream;
+                document.getElementById('cameraContainer').appendChild(video);
+
+                // Init Quagga
+                Quagga.init({
+                    inputStream: {
+                        type: 'LiveStream',
+                        constraints: {
+                            width: 640,
+                            height: 480,
+                            facingMode: 'environment', // use 'user' for front camera
+                            aspectRatio: {
+                                min: 1,
+                                max: 2
+                            } // aspect ratio
+                        }
+                    },
+                    locator: {
+                        patchSize: 'medium',
+                        halfSample: true
+                    },
+                    numOfWorkers: navigator.hardwareConcurrency || 4,
+                    decoder: {
+                        readers: ['code_128_reader']
+                    },
+                    locate: true
+                }, function(err) {
+                    if (err) {
+                        console.error(err);
+                        return;
+                    }
+                    Quagga.start();
+                });
+
+                Quagga.onDetected(function(result) {
+                    console.log('Barcode detected and processed : [' + result.codeResult.code + ']',
+                        result);
+                });
+            })
+            .catch(function(err) {
+                console.error('Error accessing camera:', err);
+            });
+    });
+</script>
+{{-- <script>
     Quagga.init({
         inputStream: {
             name: "Live",
@@ -104,13 +158,11 @@
         console.log("Initialization finished. Ready to start");
         Quagga.start();
     });
-    // })
 
     Quagga.onDetected(function(result) {
         var code = result.codeResult.code;
         console.log("Decoded code:", code);
 
-        // const code = jsQR(imageData.data, imageData.width, imageData.height);
 
         if (code) {
             fetch('/scan', {
@@ -155,9 +207,9 @@
         }
 
     });
-</script>
+</script> --}}
 
-<script>
+{{-- <script>
     const uploadBtn = document.getElementById('uploadBtn');
     const fileInput = document.getElementById('fileInput');
 
@@ -219,5 +271,5 @@
             };
         }
     });
-</script>
+</script> --}}
 @include('componenets.footer')
