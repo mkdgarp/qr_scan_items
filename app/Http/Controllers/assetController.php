@@ -35,6 +35,7 @@ class AssetController extends Controller
 
         $attributes = [
             'assets_key' => $validatedData['assets_key'],
+            'keygen' => 'KEY_' . $validatedData['assets_key'] . '_' . $validatedData['zero_code'],
             'assets_type' => $validatedData['assets_type'],
             'zero_code' => $validatedData['zero_code'],
             'start_depreciation' => $validatedData['start_depreciation'],
@@ -59,13 +60,25 @@ class AssetController extends Controller
     {
 
         // สร้าง raw query
-        $query = "SELECT assets_key, assets_type, zero_code, layout, created_date FROM qr_data";
+        $query = "SELECT assets_key,keygen, assets_type, zero_code, layout, created_date FROM qr_data";
 
         // ดึงข้อมูลจากฐานข้อมูลโดยใช้ raw query
         $assets = DB::select($query);
 
         // สามารถทำการประมวลผลหรือใช้ข้อมูลที่ได้รับได้ต่อไปตามต้องการ
         // เช่น ส่งข้อมูลกลับไปในรูปแบบ JSON หรือแสดงผลบนหน้า View
+
+        return response()->json($assets);
+    }
+    public function checkQR(Request $request)
+    {
+        // สร้าง raw query
+        $query = "SELECT * FROM qr_data WHERE keygen = ?";
+
+        // ดึงข้อมูลจากฐานข้อมูลโดยใช้ SQL query
+        $assets = DB::select($query, array($request->qrText));
+
+
 
         return response()->json($assets);
     }

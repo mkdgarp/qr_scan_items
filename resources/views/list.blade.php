@@ -1,11 +1,11 @@
 @include('componenets.header')
-@if (!session()->has('user_id'))
+{{-- @if (!session()->has('user_id'))
     @php
         // Redirect ไปยังหน้าหลัก
         header('Location: /');
         exit();
     @endphp
-@endif
+@endif --}}
 <div class="container-fluid mt-5">
     <div class="card">
         <div class="card-body">
@@ -113,7 +113,7 @@
             // $('.heightCM').val(256);
 
             dataAssets = $('#assetTable').DataTable().row($(this).parents('tr')).data();
-            var assetsKey = dataAssets.assets_key;
+            var assetsKey = dataAssets.keygen;
 
             // เปิด Modal เมื่อคลิกปุ่มพิมพ์
 
@@ -132,7 +132,7 @@
             $('#qrCode>canvas').remove()
             $('#qrCode>img').remove()
             var qrcode = new QRCode(document.getElementById("qrCode"), {
-                text: dataAssets.assets_key,
+                text: dataAssets.keygen,
                 width: $(this).val(),
                 height: $('.heightCM').val(),
                 colorDark: "#000000",
@@ -145,7 +145,7 @@
             $('#qrCode>canvas').remove()
             $('#qrCode>img').remove()
             var qrcode = new QRCode(document.getElementById("qrCode"), {
-                text: dataAssets.assets_key,
+                text: dataAssets.keygen,
                 width: $('.widthCM').val(),
                 height: $(this).val(),
                 colorDark: "#000000",
@@ -155,8 +155,8 @@
         })
 
         $('.printRQReal').on('click', function() {
-            // ดึงค่า assets_key จาก dataAssets
-            var assetsKey = dataAssets.assets_key;
+            // ดึงค่า keygen จาก dataAssets
+            var assetsKey = dataAssets.keygen;
 
             // เปิดหน้าใหม่เพื่อพิมพ์ QR Code โดยส่งค่า assets_key ไปด้วย
             window.open('/printQR/' + assetsKey, '_blank');
@@ -165,4 +165,4 @@
     });
 </script>
 
-@include('componenets.footer')
+@include('componenets.footerAdmin')

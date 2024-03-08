@@ -27,7 +27,7 @@
         </div>
     </div>
 
-
+{{-- {{dd(session()->all())}} --}}
 </div>
 <script>
     function login() {
@@ -42,6 +42,7 @@
                     icon: "success",
                     title: "เข้าสู่ระบบสำเร็จ"
                 });
+                location.replace('/form')
                 console.log(response.data);
                 // สามารถทำการเปลี่ยนหน้าหรือทำอะไรก็ตามที่คุณต้องการต่อได้ที่นี่
             })
@@ -57,4 +58,4 @@
     }
 </script>
 
-@include('componenets.footer')
+@include('componenets.footerAdmin')

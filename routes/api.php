@@ -21,6 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 
 
+Route::post('/checkQR', [assetController::class, 'checkQR'])->name('asset.checkQR');
 Route::get('/checkDB', [assetController::class, 'checkDB'])->name('asset.checkDB');
 Route::get('/listRowQR', [assetController::class, 'listRowQR'])->name('asset.listRowQR');
 Route::get('/asset/create', [assetController::class, 'create'])->name('asset.create');

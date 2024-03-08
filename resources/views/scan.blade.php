@@ -35,7 +35,6 @@
         top: 0;
     }
 
-
     .scan-input {
         font-size: 45px;
         margin-top: -10px;
@@ -44,6 +43,15 @@
     .displayResult {
         display: none;
     }
+
+    /* .html5-qrcode-element {
+        display: none !important;
+    } */
+
+    #qr-reader,
+    #qr-reader__scan_region {
+        border: none !important;
+    }
 </style>
 
 <div class="container-fluid mt-5">
@@ -51,27 +59,24 @@
         <div class="col-12 col-md-8 col-lg-6 mx-auto">
             <div class="card">
                 <div class="card-body text-center">
-                    <h1>QR Code Scanner</h1>
-                    <div class="d-flex justify-content-center mt-5">
-                        <button id="startScanner" style='display:none !important;'>สแกน QR Code</button>
-                        <div class='upload-style mb-2'>
+                    <h1>ระบบตรวจสอบ QR ข้อมูลสินทรัพย์</h1>
+                    {{-- <div class="d-flex justify-content-center mt-5">
+                        <button style='display:none !important;'>สแกน QR Code</button>
+                        <div id="startScanner" class='upload-style mb-2'>
                             <p>
-                                <i class='bx bx-qr-scan scan-input '></i><br><b>สแกน QR Code</b>
+                                <i class='bx bx-qr-scan scan-input '></i><br><b>ขอสิทธิ์เข้าถึงกล้อง</b>
                             </p>
-                            {{-- <input type="file" id="fileInput" accept="image/jpeg, image/png, image/jpg"> --}}
                         </div>
-                    </div>
+                    </div> --}}
 
-                    <video id="scanner" style="width:90%;height:300px;"></video>
-                    <div id="result">
-
-                    </div>
+                    <div id="qr-reader" class="mt-5"></div>
+                    <div id="qr-reader-results"></div>
                 </div>
             </div>
         </div>
     </div>
     <div class="row mt-3 displayResult">
-        <div class="col-12 col-md-8 col-lg-6-mx-auto">
+        <div class="col-12 col-md-8 col-lg-6 mx-auto">
             <div class="card">
                 <div class="card-body">
                     <div class="text-start resultHere">
@@ -83,193 +88,133 @@
     </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.min.js"></script>
+{{-- <script src="https://cdn.jsdelivr.net/npm/quagga/dist/quagga.min.js"></script> --}}
+<script src="html5-qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
 <script>
-    document.getElementById('startScanner').addEventListener('click', function() {
-        // Get user media
-        navigator.mediaDevices.getUserMedia({
-                video: true
-            })
-            .then(function(stream) {
-                // Append video element to cameraContainer
-                var video = document.createElement('video');
-                video.setAttribute('autoplay', '');
-                video.setAttribute('playsinline', '');
-                video.srcObject = stream;
-                document.getElementById('cameraContainer').appendChild(video);
+    const Toast2 = Swal.mixin({
+            toast: true,
+            position: "top",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true
+        });
+        
+    $('.html5-qrcode-element').ready(function() {
+        $('.html5-qrcode-element').addClass('btn btn-primary')
+    })
+    $('#html5-qrcode-anchor-scan-type-change').ready(function() {
+        $('#html5-qrcode-anchor-scan-type-change').addClass('d-none')
+    })
+    $('#html5-qrcode-button-camera-permission').ready(function() {
+        $('#html5-qrcode-button-camera-permission').text('ขอสิทธิ์การเข้าถึงกล้อง')
+    })
+    $('#html5-qrcode-button-camera-stop').ready(function() {
+        $('#html5-qrcode-button-camera-stop').addClass('btn btn-danger')
+        $('#html5-qrcode-button-camera-stop').text('หยุดสแกน')
+    })
+    $('#html5-qrcode-button-camera-start').ready(function() {
+        $('#html5-qrcode-button-camera-start').addClass('btn btn-primary')
+        $('#html5-qrcode-button-camera-start').text('สแกน QR Code')
+    })
+    // $('#qr-reader__header_message').ready(function(){
+    //     $('#qr-reader__header_message').text('สิทธิ์การเข้าถึง: ไม่พบการอนุญาตการให้เข้าถึงกล้อง')
+    // })
+    $('.scan-input').on('click', function() {
+        $('#html5-qrcode-button-camera-permission').click();
+    })
 
-                // Init Quagga
-                Quagga.init({
-                    inputStream: {
-                        type: 'LiveStream',
-                        constraints: {
-                            width: 640,
-                            height: 480,
-                            facingMode: 'environment', // use 'user' for front camera
-                            aspectRatio: {
-                                min: 1,
-                                max: 2
-                            } // aspect ratio
+    function docReady(fn) {
+
+        // see if DOM is already available
+        if (document.readyState === "complete" ||
+            document.readyState === "interactive") {
+            // call on next available tick
+            setTimeout(fn, 1);
+            // $('#startScanner').show()
+        } else {
+            document.addEventListener("DOMContentLoaded", fn);
+            // $('#startScanner').hide()
+        }
+    }
+
+    docReady(function() {
+        // var resultContainer = document.getElementById('qr-reader-results');
+        var lastResult, countResults = 0;
+
+        function onScanSuccess(decodedText, decodedResult) {
+            if (decodedText !== lastResult) {
+                ++countResults;
+                lastResult = decodedText;
+                // Handle on success condition with the decoded message.
+                console.log(`Scan result ${decodedText}`, decodedResult);
+
+                // Close camera
+
+
+                // Send result to API and display result
+                fetch('api/checkQR', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            qrText: decodedText
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
                         }
-                    },
-                    locator: {
-                        patchSize: 'medium',
-                        halfSample: true
-                    },
-                    numOfWorkers: navigator.hardwareConcurrency || 4,
-                    decoder: {
-                        readers: ['code_128_reader']
-                    },
-                    locate: true
-                }, function(err) {
-                    if (err) {
-                        console.error(err);
-                        return;
-                    }
-                    Quagga.start();
-                });
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        let datas = data[0]
+                        // Display result
+                        // resultContainer.innerHTML = data.result;
+                        html5QrcodeScanner.clear();
+                        // console.log('data',data)
+                        Toast2.fire({
+                            icon: "success",
+                            title: "สแกน QR Code สำเร็จ!"
+                        });
+                        $('.resultHere').html(`
+                        <h5>ผลลัพธ์</h5><hr class='my-1 py-1'>
+                        <b>รหัสสินทรัพย์</b> : <span>${datas.assets_key}</span><br>
+                        <b>ประเภทสินทรัพย์</b> : <span>${datas.assets_type}</span><br>
+                        <b>รหัสศูนย์</b> : <span>${datas.zero_code}</span><br>
+                        <b>วันเริ่มคิดค่าเสื่อม</b> : <span>${datas.start_depreciation}</span><br>
+                        <b>สถานที่ตั้ง</b> : <span>${datas.address}</span><br>
+                        <b>จำนวน</b> : <span>${datas.qty}</span><br>
+                        <b>หน่วยนับ</b> : <span>${datas.unit}</span><br>
+                        <b>อายุ</b> : <span>${datas.age}</span><br>
+                        <b>ราคาทุน</b> : <span>${datas.cost_price}</span><br>
+                        <b>มูลค่าสุทธิ</b> : <span>${datas.total_price}</span><br>
+                        <b>แผนงาน</b> : <span>${datas.layout}</span><br>
+                        `)
+                        $('.displayResult').addClass('d-flex')
+                    })
+                    .catch((error) => {
+                        html5QrcodeScanner.clear();
+                        Toast.fire({
+                            icon: "warning",
+                            title: "ไม่พบ QR Code นี้ในระบบ"
+                        });
+                        return; // ไม่ส่งข้อมูลถ้ามีฟิลด์ใดหนึ่งว่าง
+                    });
+                setTimeout(() => {
+                    html5QrcodeScanner.render(onScanSuccess);
+                }, 1500); // Set a delay before showing the scanner again
+            }
+        }
 
-                Quagga.onDetected(function(result) {
-                    console.log('Barcode detected and processed : [' + result.codeResult.code + ']',
-                        result);
-                });
-            })
-            .catch(function(err) {
-                console.error('Error accessing camera:', err);
+        var html5QrcodeScanner = new Html5QrcodeScanner(
+            "qr-reader", {
+                fps: 10,
+                qrbox: 250,
+                facingMode: "environment" // ระบุการใช้กล้องหลังเท่านั้น
             });
+        html5QrcodeScanner.render(onScanSuccess);
+
     });
 </script>
-{{-- <script>
-    Quagga.init({
-        inputStream: {
-            name: "Live",
-            type: "LiveStream",
-            target: document.querySelector('#scanner')
-        },
-        decoder: {
-            readers: ["code_128_reader"]
-        }
-    }, function(err) {
-        if (err) {
-            console.log(err);
-            return
-        }
-        console.log("Initialization finished. Ready to start");
-        Quagga.start();
-    });
-
-    Quagga.onDetected(function(result) {
-        var code = result.codeResult.code;
-        console.log("Decoded code:", code);
 
 
-        if (code) {
-            fetch('/scan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
-                            'content')
-                    },
-                    body: JSON.stringify({
-                        code: code
-                    })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    $('.displayResult').addClass('d-block')
-                    console.log(data);
-                    // document.getElementById('result').innerText = data.message;
-                })
-                .catch(error => console.error('Error:', error));
-            // $('.resultHere').html(`
-            //             <h5>ผลลัพธ์</h5>
-            //             <hr class='my-1 py-1'>
-            //             <b>รหัสสินทรัพย์:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             <b>TEST TOPIC:</b> ${code.data}<br>
-            //             `)
-            // alert('QR Code Key ==== :' + code.data)
-        } else {
-            $('.displayResult').removeClass('d-block')
-            $('.resultHere').html('')
-            // alert('รูปแบบ QR Code ไม่ถูกต้อง กรุณาตรวจสอบ!')
-            Toast.fire({
-                icon: "error",
-                title: "รูปแบบ QR Code ไม่ถูกต้อง กรุณาตรวจสอบ!"
-            });
-        }
 
-    });
-</script> --}}
-
-{{-- <script>
-    const uploadBtn = document.getElementById('uploadBtn');
-    const fileInput = document.getElementById('fileInput');
-
-    fileInput.addEventListener('change', function() {
-        const files = fileInput.files;
-
-        // Iterate over selected files
-        for (let i = 0; i < files.length; i++) {
-            const file = files[i];
-            const reader = new FileReader();
-
-            // Read file as Data URL
-            reader.readAsDataURL(file);
-
-            // When the file is loaded, add its data URL to the imagesData array
-            reader.onload = function(event) {
-                const imageData = event.target.result;
-                console.log('Image Data:', imageData);
-
-                // Decode QR code from image data
-                const image = new Image();
-                image.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = image.width;
-                    canvas.height = image.height;
-                    context.drawImage(image, 0, 0, image.width, image.height);
-                    const imageData = context.getImageData(0, 0, image.width, image.height);
-
-                    // Find QR code in the image
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-                    if (code) {
-                        $('.displayResult').addClass('d-block')
-                        $('.resultHere').html(`
-                        <h5>ผลลัพธ์</h5>
-                        <hr class='my-1 py-1'>
-                        <b>รหัสสินทรัพย์:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        <b>TEST TOPIC:</b> ${code.data}<br>
-                        `)
-                        // alert('QR Code Key ==== :' + code.data)
-                    } else {
-                        $('.displayResult').removeClass('d-block')
-                        $('.resultHere').html('')
-                        // alert('รูปแบบ QR Code ไม่ถูกต้อง กรุณาตรวจสอบ!')
-                        Toast.fire({
-                            icon: "error",
-                            title: "รูปแบบ QR Code ไม่ถูกต้อง กรุณาตรวจสอบ!"
-                        });
-                    }
-                };
-                image.src = imageData;
-            };
-        }
-    });
-</script> --}}
 @include('componenets.footer')

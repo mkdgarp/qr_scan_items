@@ -1,11 +1,11 @@
 @include('componenets.header')
-@if (!session()->has('user_id'))
+{{-- @if (!session()->has('user_id'))
     @php
         // Redirect ไปยังหน้าหลัก
         header('Location: /');
         exit();
     @endphp
-@endif
+@endif --}}
 
 <style>
     / .highlight-input.filled {
@@ -187,4 +187,4 @@
 </script>
 
 
-@include('componenets.footer')
+@include('componenets.footerAdmin')

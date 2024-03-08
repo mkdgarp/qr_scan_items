@@ -21,14 +21,16 @@ class LoginController extends Controller
             ->where('username', $username)
             ->first();
 
-        if ($user && Hash::check($password, $user->password && $user->role == 1)) {
+        if ($user && Hash::check($password, $user->password)) {
             // เมื่อล็อกอินสำเร็จ
             // สร้าง session
-            Session::put('user_id', $user->id);
-
+            // Session::put('user_id', $user->id);
+            // session(['user_id' => $user->id]);
+            session(['user_id' => 1]);
             // Redirect ไปที่หน้า /form
             // return 111;
-            return redirect('/form');
+            // return redirect('/form');
+            return response()->json(['msg' => 'success'], 200);
         } else {
             // กระบวนการเมื่อล็อกอินไม่สำเร็จ
             // แสดงข้อความผิดพลาดและ redirect ผู้ใช้กลับไปที่หน้า login
